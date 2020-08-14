@@ -33,14 +33,11 @@ class CryptoHelper:
     if not iv:
       iv = Random.new().read(BLOCK_SIZE)
     cipher = AES.new(CryptoHelper.AES_KEY, AES.MODE_CBC, iv)
-    # print(raw, len(raw.encode()), sep="\n")
     return cipher.encrypt(CryptoHelper.pad(msg))
 
   @staticmethod
   def block_xor(b1, b2, b3):
     s = b''
     for c1, c2, c3 in zip(b1, b2, b3):
-      # print(c1, c2, c3, c1^c2^c3)
       s += bytes([c1 ^ c2 ^ c3])
-    # print(len(s.decode('cp437')), len(s))
     return s
