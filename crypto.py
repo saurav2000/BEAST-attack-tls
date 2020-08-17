@@ -3,8 +3,10 @@ from Crypto import Random
 import string
 import random
 
+
 BLOCK_SIZE = AES.block_size
 ALPHANUMERIC = string.digits + string.ascii_letters
+
 
 class CryptoHelper:
   """
@@ -29,11 +31,17 @@ class CryptoHelper:
       return msg + bytes(chr(97 + pad_l) * pad_l, "ascii")
 
   @staticmethod
+  def unpad(msg):
+    x = msg[-1]
+    pad_l = x - 97 if isinstance(x, int) else ord(x) - 97
+    return msg[:-pad_l]
+
+  @staticmethod
   def encrypt(msg, iv=None):
     if not iv:
       iv = Random.new().read(BLOCK_SIZE)
     cipher = AES.new(CryptoHelper.AES_KEY, AES.MODE_CBC, iv)
-    return cipher.encrypt(CryptoHelper.pad(msg))
+    return iv + cipher.encrypt(CryptoHelper.pad(msg))
 
   @staticmethod
   def block_xor(b1, b2, b3):
@@ -41,3 +49,10 @@ class CryptoHelper:
     for c1, c2, c3 in zip(b1, b2, b3):
       s += bytes([c1 ^ c2 ^ c3])
     return s
+
+  @staticmethod
+  def decrypt(msg_with_iv):
+    iv = msg_with_iv[:BLOCK_SIZE]
+    msg = msg_with_iv[BLOCK_SIZE:]
+    cipher = AES.new(CryptoHelper.AES_KEY, AES.MODE_CBC, iv)
+    return CryptoHelper.unpad(cipher.decrypt(msg))

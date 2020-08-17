@@ -3,10 +3,11 @@ from crypto import CryptoHelper
 from crypto import BLOCK_SIZE
 from crypto import ALPHANUMERIC
 
+
 class Victim:
   def __init__(self):
     """
-    Constructor with sockets and parts of the request
+      Constructor with sockets and parts of the request
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -19,21 +20,22 @@ class Victim:
 
   def request(self, step):
     """
-    Construct the plain text after modifying it
+      Construct the plain text after modifying it
 
-    step: no of bytes to be shifted to guess the next letter
+      step: no of bytes to be shifted to guess the next letter
     """
     s = self.byte_shifting_part if step == 0 else self.byte_shifting_part[:-step]
     return s + self.request_part + self.cookie
 
-  def block_print(self, string):
+  def block_print(self, string, pr=True):
     """
       Function to print the malicious requests in formatted blocks
     """
     string = CryptoHelper.pad(string)
     l = [string[i:i+BLOCK_SIZE] for i in range(0, len(string), BLOCK_SIZE)]
     l = [repr(s)[2:-1] if isinstance(s, bytes) else repr(s)[1:-1] for s in l]
-    print('The malicious request is')
+    if pr:
+      print('The malicious request is')
     print("{: <65} {: <20} {: <20} {: <20} {: <20} {: <20}".format(*l), end="\n\n")
 
   def modify(self, string, char, iv, prev_cipher):
@@ -64,11 +66,11 @@ class Victim:
     for i in range(8):
       request = self.request(i)
       print('The shifted request is')
-      self.block_print(request)
+      self.block_print(request, False)
       # This is the main request being sent to 
       encoded = CryptoHelper.encrypt(request, iv)
       iv = encoded[-BLOCK_SIZE:]
-      prev_cipher = encoded[3*BLOCK_SIZE:4*BLOCK_SIZE]
+      prev_cipher = encoded[4*BLOCK_SIZE:5*BLOCK_SIZE]
       self.sock.send(encoded)
       # Loop to go through all the guesses and send each guess
       for j in ALPHANUMERIC:
@@ -82,6 +84,6 @@ class Victim:
     print('I AM THE VICTIM.\nMY COOKIE IS', self.cookie)
     self.sock.close()
 
+
 if __name__ == '__main__':
-  victim = Victim()
-  victim.run()
+  Victim().run()
